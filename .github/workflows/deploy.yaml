@@ -40,7 +40,7 @@ jobs:
           IMAGE=$REGION-docker.pkg.dev/$PROJECT_ID/$REPO/$SERVICE
           
           # build & push
-          docker build -t $IMAGE:${{ github.sha }} -t $IMAGE:latest
+          docker build -t $IMAGE:${{ github.sha }} -t $IMAGE:latest .
           docker push $IMAGE:${{ github }}
           docker push $IMAGE:latest
         
