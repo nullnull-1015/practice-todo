@@ -1,0 +1,54 @@
+name: Deploy to GCP
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+env:
+  PROJECT_ID: practice-494411
+  REGION: asia-northeast1
+  REPO: docker-repo
+  SERVICE: todo-app
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: read
+      id-token: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - id: auth
+        uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
+          service_account: ${{ secrets.GCP_SA_EMAIL }}
+      
+      - uses: google-github-actions/setup-gcloud@v2
+      
+      # Docker config
+      - run: gcloud auth configurate-docker $REGION-docker.pkg.dev
+      
+      - name: build & push
+        run: |
+          IMAGE=$REGION-docker.pkg.dev/$PROJECT_ID/$REPO/$SERVICE
+          
+          # build & push
+          docker build -t $IMAGE:${{ github.sha }} -t $IMAGE:latest
+          docker push $IMAGE:${{ github }}
+          docker push $IMAGE:latest
+        
+      - name: deploy
+        run: |
+          IMAGE=$REGION-docker.pkg.dev/$PROJECT_ID/$REPO/$SERVICE
+          gcloud run deploy $SERVICE \
+            --image $IMAGE:{{ github.sha }} \
+            --region $REGION \
+            --allow-unauthenticated \
+
