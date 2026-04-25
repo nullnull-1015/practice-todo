@@ -48,7 +48,7 @@ jobs:
         run: |
           IMAGE=$REGION-docker.pkg.dev/$PROJECT_ID/$REPO/$SERVICE
           gcloud run deploy $SERVICE \
-            --image $IMAGE:{{ github.sha }} \
+            --image $IMAGE:${{ github.sha }} \
             --region $REGION \
             --allow-unauthenticated \
 
